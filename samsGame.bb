@@ -15,21 +15,18 @@ Type Player
 
 End Type
 
-p.Player = New Player
+Global p.Player = New Player
 p\px# = 0
 p\py# = 10
 p\pz# = -50
 
 
-cam=CreateCamera()
+Global cam=CreateCamera()
 PositionEntity cam,0,10,-50
 
 
-light=CreateLight()
+Global light=CreateLight()
 RotateEntity light,90,0,0
-
-
-
 
 
 ;create suspects
@@ -40,7 +37,7 @@ ScaleEntity sus1,.2,.2,.2
 PositionEntity sus1,-40,0,50
 RotateEntity sus1, 0,180,0
 EntityColor sus1, 153,153,153
-c1 = 0
+Global c1 = 0
 
 
 ;middle suspect
@@ -49,7 +46,7 @@ ScaleEntity sus2,.2,.2,.2
 PositionEntity sus2,0,0,50
 RotateEntity sus2, 0,180,0
 EntityColor sus2, 0,53,0
-c2 = 1
+Global c2 = 1
 
 ;right suspect
 sus3=LoadMD2("media/gargoyle.md2")
@@ -57,7 +54,7 @@ ScaleEntity sus3,.2,.2,.2
 PositionEntity sus3, 40,0,50
 RotateEntity sus3, 0,180,0
 EntityColor sus3, 105, 51, 51
-c3 = 2
+Global c3 = 2
 
 
 ;create rooms
@@ -127,57 +124,70 @@ sky2=CreateSphere(24)
 ScaleEntity sky2,500,500,500
 FlipMesh sky2
 EntityFX sky2,1
-;sky_tex=LoadTexture("media/sky.bmp")
 EntityTexture sky2,sky_tex
 
 PositionEntity sky2, 0, 20000, 0
 
 
-Dim clue$(2)
+Dim clue$(2, 2)
 
 
-clue$(0) = "Nice day out"
+clue$(0, 0) = "Break the 2nd Law"
+clue$(0, 1) = "I can feel the heat"
+clue$(0, 2) = "Put our differences aside"
 
-clue$(1) = "A liar keeps you trapped"
+clue$(1, 0) = "Drop the Apple"
+clue$(1, 1) = "How mercurial"
+clue$(1, 2) = "Infinitesimal in principle"
 
-clue$(2) = "We Winged Demons Three"
+clue$(2, 0) = "Copenhagen is nice in Spring"
+clue$(2, 1) = "You'll always be uncertain"
+clue$(2, 2) = "A gain in one is a loss to the other"
 
-SeedRnd(MilliSecs()) 
-t = Rnd(2)
+Global col = 0
 
-If t = 1
+Global correct = 0
 
-	c1 = 1
+Color 255, 0, 0
 
-	c2 = 2
+fnt = LoadFont("Blitz", 24, False, False, False)
 
-	c3 = 0
+SetFont fnt
 
-Else If t = 2
+Global music = PlayMusic("media/bgmus.mp3")
 
-	c1= 2
 
-	c2 = 0
 
-	c3 = 1
+While Not (KeyDown(28) Or KeyDown(1))
 
-EndIf 
 
-correct = 0
+	Text 400, 100, "Maxwell's Demon: A Game by Sam Katz", True, True
 
+	Text 400, 150, "Move with arrow keys.", True, True
+
+	Text 400, 200, "Accuse by pressing space in a room.", True, True
+
+	Text 400, 250, "Press Enter to Begin. Press ESC to exit.", True, True
+
+	;UpdateWorld
+	;RenderWorld
+
+	PositionEntity cam,p\px#,p\py#,p\pz#
+
+
+
+Wend
+
+
+;LoopSound music
+;PlaySound music
+
+
+InitGame()
 
 While Not KeyDown(1)
 
-	; Control camera
 	
-	; mouse look
-	
-	;mxs#=(mxs#+(MouseXSpeed()/5.0)) Mod 360
-	;mys#=mys#+(MouseYSpeed()/5.0)
-
-	;RotateEntity cam,mys#,-mxs#,0
-
-	;MoveMouse width/2,height/2
 
 	
 
@@ -194,12 +204,12 @@ While Not KeyDown(1)
 	UpdateWorld
 	RenderWorld
 	
-	Text 0,0,t + "Maxwell's Demon"+ p\px#
-	Text 0,20,correct + "Move with arrow keys. Accuse by pressing space in a room."+p\pz#
+	;Text 350,0,"Maxwell's Demon"
+	;Text 200,20,"Move with arrow keys. Accuse by pressing space in a room."
 
-	If correct = 1 Then Text 380, 100, "You got him. Welcome to Paradise."
+	If correct = 1 Then Text 400, 100, "You got him. Welcome to Paradise.", True , True
 	If correct = 2 
-		Text 380, 100, "You failed. Fall to the Abyss." 
+		Text 400, 100, "You failed. Fall to the Abyss." , True, True
 		p\px# = 0 
 		p\py# = p\py# - 1 
 		p\pz# = 0
@@ -207,13 +217,15 @@ While Not KeyDown(1)
 
 	EndIf 
 
+	If correct <> 0 Then Text 400, 200, "Press Enter to Play Again. ESC to exit.", True, True
+
 	If p\pz# > 20 And correct = 0
 		
-		If p\px# > -60 And p\px# < -20 Then Text 380, 200, clue$(c1)
+		If p\px# > -60 And p\px# < -20 Then Text 400, 200, clue$(c1, col), True, True
 
-		If p\px# > -20 And p\px# < 20 Then Text 380, 200, clue$(c2)
+		If p\px# > -20 And p\px# < 20 Then Text 400, 200, clue$(c2, col), True, True
 
-		If p\px# > 20 And p\px# < 60 Then Text 380, 200, clue$(c3)
+		If p\px# > 20 And p\px# < 60 Then Text 400, 200, clue$(c3, col), True, True
 
 	EndIf 
 
@@ -245,10 +257,64 @@ While Not KeyDown(1)
 
 	EndIf 
 
+	If KeyDown(28) And correct <> 0
+
+		If correct = 2 Then RotateEntity cam, 0, 0, 0
+
+		InitGame()
+
+	EndIf
+
+	If Not ChannelPlaying(music) Then music = PlayMusic("media/bgmus.mp3")
+
 	Flip
 
 Wend
 
+Function InitGame()
+
+	p\px# = 0
+	p\py# = 10
+	p\pz# = -50
+
+	correct = 0
+
+	SusSelect()
+
+End Function
+
+Function SusSelect()
+
+	SeedRnd(MilliSecs()) 
+	t = Rnd(2)
+	col = Rnd(2)
+
+	If t = 1
+
+		c1 = 1
+
+		c2 = 2
+
+		c3 = 0
+
+	Else If t = 2
+
+		c1= 2
+
+		c2 = 0
+
+		c3 = 1
+
+	Else If t = 0
+
+		c1 = 0
+
+		c2 = 1
+
+		c3 = 2
+
+	EndIf 
+
+End Function
+
 End
-;~IDEal Editor Parameters:
-;~C#Blitz3D
